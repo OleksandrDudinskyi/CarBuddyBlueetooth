@@ -10,33 +10,30 @@
 
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/choose_beacon_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView"
         android:layout_centerHorizontal="true"
-        android:layout_toEndOf="@+id/textView"
-        android:layout_toRightOf="@+id/textView"
         android:text="Choose beacon type"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <RadioGroup
-        android:id="@+id/radioGroup"
+        android:id="@+id/beacon_type_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView"
+        android:layout_below="@+id/choose_beacon_desc"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp">
 
         <RadioButton
-            android:id="@+id/radio_pirates"
+            android:id="@+id/radio_car_beacon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="onRadioButtonClicked"
             android:text="Car" />
 
         <RadioButton
-            android:id="@+id/radio_ninjas"
+            android:id="@+id/radio_wallet_beacon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="onRadioButtonClicked"
@@ -44,10 +41,10 @@
     </RadioGroup>
 
     <CheckBox
-        android:id="@+id/checkBox"
+        android:id="@+id/manage_beacon_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/radioGroup"
+        android:layout_below="@+id/beacon_type_group"
         android:layout_centerInParent="true"
         android:layout_marginTop="50dp"
         android:text="Set up Visible" />
