@@ -15,7 +15,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,6 +30,8 @@ public class MonitorService extends Service {
     private String mCarBeaconAddress;
     private String mWalletBeaconAddress;
     private Timer mTimer;
+    private short mCarRSSI = 0;
+    private short mWalletRSSI = 0;
 
     /**
      * Target we publish for clients to send messages to IncomingHandler.
@@ -77,21 +78,14 @@ public class MonitorService extends Service {
 
             // When discovery finds a device
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                short carRSSI = 0;
-                short walletRSSI = 0;
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 short rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, (short) 0);
-                // If it's already paired, skip it, because it's been listed already
+                // Check if found device one of our beacon
                 if (device.getAddress().equals(mCarBeaconAddress)) {
-                    carRSSI = rssi;
+                    mCarRSSI = rssi;
                 } else if (device.getAddress().equals(mWalletBeaconAddress)) {
-                    walletRSSI = rssi;
-                }
-                Log.d("test", "Car rssi: " + carRSSI);
-                Log.d("test", "Wallet rssi: " + walletRSSI);
-                if (carRSSI > -70 && (walletRSSI < -70 || walletRSSI == 0)) {
-                    notifyUser();
+                    mWalletRSSI = rssi;
                 }
             }
         }
@@ -137,7 +131,9 @@ public class MonitorService extends Service {
             if (mBtAdapter.isDiscovering()) {
                 mBtAdapter.cancelDiscovery();
             }
-
+            if (mCarRSSI != 0 && mCarRSSI > -70 && (mWalletRSSI < -70 || mWalletRSSI == 0)) {
+                notifyUser();
+            }
             // Request discover from BluetoothAdapter
             mBtAdapter.startDiscovery();
         }
