@@ -15,9 +15,10 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Monitor service for receiving car and wallet beacons addresses and monitoring their visibility
@@ -29,7 +30,16 @@ public class MonitorService extends Service {
     private BluetoothAdapter mBtAdapter;
     private String mCarBeaconAddress;
     private String mWalletBeaconAddress;
-    private Timer mTimer;
+    private boolean isWalletFound;
+    private boolean isCarFound;
+    private ScheduledThreadPoolExecutor executor =
+            new ScheduledThreadPoolExecutor(1);
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
+    }
+
     private short mCarRSSI = 0;
     private short mWalletRSSI = 0;
 
@@ -58,7 +68,6 @@ public class MonitorService extends Service {
         super.onCreate();
         // Get the local Bluetooth adapter
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
-        mTimer = new Timer();
         // Register for broadcasts when a device is discovered
         IntentFilter foundFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mBluetoothReceiver, foundFilter);
@@ -84,8 +93,10 @@ public class MonitorService extends Service {
                 // Check if found device one of our beacon
                 if (device.getAddress().equals(mCarBeaconAddress)) {
                     mCarRSSI = rssi;
+                    isCarFound = true;
                 } else if (device.getAddress().equals(mWalletBeaconAddress)) {
                     mWalletRSSI = rssi;
+                    isWalletFound = true;
                 }
             }
         }
@@ -123,7 +134,7 @@ public class MonitorService extends Service {
         mNotificationManager.notify(1, mBuilder.build());
     }
 
-    private TimerTask timerTask = new TimerTask() {
+    private Runnable timerTask = new Runnable() {
 
         @Override
         public void run() {
@@ -131,9 +142,13 @@ public class MonitorService extends Service {
             if (mBtAdapter.isDiscovering()) {
                 mBtAdapter.cancelDiscovery();
             }
-            if (mCarRSSI != 0 && mCarRSSI > -70 && (mWalletRSSI < -70 || mWalletRSSI == 0)) {
+            Log.d("test","car rssi: " + mCarRSSI);
+            Log.d("test","wallet rssi: " + mWalletRSSI);
+            if (isCarFound && mCarRSSI > -70 && (mWalletRSSI < -70 || !isWalletFound)) {
                 notifyUser();
             }
+            isCarFound = false;
+            isWalletFound = false;
             // Request discover from BluetoothAdapter
             mBtAdapter.startDiscovery();
         }
@@ -154,7 +169,16 @@ public class MonitorService extends Service {
                     mWalletBeaconAddress = msg.getData().getString(Constants.BEACON_ADDRESS);
                     break;
                 case Constants.MSG_START_MONITOR:
-                    mTimer.scheduleAtFixedRate(timerTask, 0, 15000);
+                    mCarBeaconAddress = msg.getData().getString(Constants.CAR_BEACON_ADDRESS);
+                    mWalletBeaconAddress = msg.getData().getString(Constants.WALLET_BEACON_ADDRESS);
+                    if (executor.isShutdown()) {
+                        executor = new ScheduledThreadPoolExecutor(1);
+                    }
+                    executor.scheduleAtFixedRate(timerTask, 0, 15, TimeUnit.SECONDS);
+                    break;
+                case Constants.MSG_STOP_MONITOR:
+                    executor.shutdown();
+                    stopSelf();
                     break;
                 default:
                     super.handleMessage(msg);

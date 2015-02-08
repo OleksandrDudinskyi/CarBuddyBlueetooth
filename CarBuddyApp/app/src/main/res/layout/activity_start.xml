@@ -15,11 +15,11 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/pair_car"
+            android:id="@+id/setup_car"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="Pair Car" />
+            android:text="Select car" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="Name"
+            android:layout_marginLeft="3dp"
             android:textSize="9pt" />
 
     </LinearLayout>
@@ -49,11 +49,11 @@
         android:layout_height="100dp">
 
         <Button
-            android:id="@+id/pair_wallet"
+            android:id="@+id/setup_wallet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="Pair Wallet" />
+            android:text="Select wallet" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -68,7 +68,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="Name"
+            android:layout_marginLeft="3dp"
             android:textSize="9pt" />
     </LinearLayout>
 
@@ -77,11 +77,11 @@
         android:layout_height="5dp"
         android:background="@color/background_material_dark" />
 
-    <Button
-        android:id="@+id/monitor_btn"
+    <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
         android:layout_marginTop="30dp"
-        android:text="Start monitor" />
+        android:text="Start monitor"
+        android:id="@+id/monitor_btn"
+        android:layout_gravity="center_horizontal" />
 </LinearLayout>

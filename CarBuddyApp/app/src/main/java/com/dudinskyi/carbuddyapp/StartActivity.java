@@ -17,24 +17,28 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /**
  * @author Oleksandr Dudinskyi(dudinskyj@gmail.com)
  */
-public class StartActivity extends ActionBarActivity {
+public class StartActivity extends ActionBarActivity implements View.OnClickListener {
 
     private static final String TAG = StartActivity.class.getCanonicalName();
 
     private static final int GET_CAR_BEACON = 1;
     private static final int GET_WALLET_BEACON = 2;
     private static final int REQUEST_ENABLE_BT = 3;
-    private Button mPairCar;
-    private Button mPairWallet;
-    private Button mMonitorBtn;
+    private Button mSetupCar;
+    private Button mSetupWallet;
+    private CheckBox mMonitorBtn;
     private TextView mCarBeaconName;
     private TextView mWalletBeaconName;
+    private String mCarBeaconAddress;
+    private String mWalletBeaconAddress;
 
     /**
      * Local Bluetooth adapter
@@ -57,35 +61,29 @@ public class StartActivity extends ActionBarActivity {
         setContentView(R.layout.activity_start);
         bindService(new Intent(StartActivity.this, MonitorService.class), mConnection,
                 Context.BIND_AUTO_CREATE);
-        mPairCar = (Button) findViewById(R.id.pair_car);
-        mPairCar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Launch the DeviceListActivity to see devices and do scan
-                Intent serverIntent = new Intent(StartActivity.this, BeaconsListActivity.class);
-                startActivityForResult(serverIntent, GET_CAR_BEACON);
-            }
-        });
-        mPairWallet = (Button) findViewById(R.id.pair_wallet);
-        mPairWallet.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // Launch the DeviceListActivity to see devices and do scan
-                Intent serverIntent = new Intent(StartActivity.this, BeaconsListActivity.class);
-                startActivityForResult(serverIntent, GET_WALLET_BEACON);
-            }
-        });
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
+        mSetupCar = (Button) findViewById(R.id.setup_car);
         mCarBeaconName = (TextView) findViewById(R.id.car_beacon_name);
         mWalletBeaconName = (TextView) findViewById(R.id.wallet_beacon_name);
-
-        mMonitorBtn = (Button) findViewById(R.id.monitor_btn);
-        mMonitorBtn.setOnClickListener(new View.OnClickListener() {
+        mMonitorBtn = (CheckBox) findViewById(R.id.monitor_btn);
+        mSetupWallet = (Button) findViewById(R.id.setup_wallet);
+        mSetupCar.setOnClickListener(this);
+        mSetupWallet.setOnClickListener(this);
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        mMonitorBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                Message msg = Message.obtain(null, Constants.MSG_START_MONITOR, 0, 0);
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Message msg;
+                if (isChecked) {
+                    bindService(new Intent(StartActivity.this, MonitorService.class), mConnection,
+                            Context.BIND_AUTO_CREATE);
+                    Bundle bundle = new Bundle();
+                    bundle.putString(Constants.CAR_BEACON_ADDRESS, mCarBeaconAddress);
+                    bundle.putString(Constants.WALLET_BEACON_ADDRESS, mWalletBeaconAddress);
+                    msg = Message.obtain(null, Constants.MSG_START_MONITOR, 0, 0);
+                    msg.setData(bundle);
+                } else {
+                    msg = Message.obtain(null, Constants.MSG_STOP_MONITOR, 0, 0);
+                }
                 try {
                     mService.send(msg);
                 } catch (RemoteException e) {
@@ -133,6 +131,7 @@ public class StartActivity extends ActionBarActivity {
                     // Create and send a message to the service, using a supported 'what' value
                     Message msg = Message.obtain(null, Constants.MSG_GET_CAR_ADDRESS, 0, 0);
                     String name = data.getExtras().getString(Constants.EXTRA_DEVICE_NAME);
+                    mCarBeaconAddress = data.getExtras().getString(Constants.EXTRA_DEVICE_ADDRESS);
                     mCarBeaconName.setText(name);
                     setupBeacon(data, msg);
                 }
@@ -143,6 +142,7 @@ public class StartActivity extends ActionBarActivity {
                     // Create and send a message to the service, using a supported 'what' value
                     Message msg = Message.obtain(null, Constants.MSG_GET_WALLET_ADDRESS, 0, 0);
                     String name = data.getExtras().getString(Constants.EXTRA_DEVICE_NAME);
+                    mWalletBeaconAddress = data.getExtras().getString(Constants.EXTRA_DEVICE_ADDRESS);
                     mWalletBeaconName.setText(name);
                     setupBeacon(data, msg);
                 }
@@ -172,10 +172,12 @@ public class StartActivity extends ActionBarActivity {
         Bundle bundle = new Bundle();
         bundle.putString(Constants.BEACON_ADDRESS, address);
         msg.setData(bundle);
-        try {
-            mService.send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        if (mService != null) {
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -203,4 +205,21 @@ public class StartActivity extends ActionBarActivity {
             mService = null;
         }
     };
+
+    @Override
+    public void onClick(View v) {
+        Intent intent;
+        switch (v.getId()) {
+            case R.id.setup_car:
+                // Launch the BeaconListActivity to see devices and do scan
+                intent = new Intent(StartActivity.this, BeaconsListActivity.class);
+                startActivityForResult(intent, GET_CAR_BEACON);
+                break;
+            case R.id.setup_wallet:
+                // Launch the BeaconListActivity to see devices and do scan
+                intent = new Intent(StartActivity.this, BeaconsListActivity.class);
+                startActivityForResult(intent, GET_WALLET_BEACON);
+                break;
+        }
+    }
 }
