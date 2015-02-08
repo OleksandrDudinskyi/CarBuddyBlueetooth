@@ -15,25 +15,23 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.support.v4.app.NotificationCompat;
-import android.widget.Toast;
+import android.util.Log;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
+ * Monitor service for receiving car and wallet beacons addresses and monitoring their visibility
+ *
  * @author Oleksandr Dudinskyi(dudinskyj@gmail.com)
  */
 public class MonitorService extends Service {
 
-    /**
-     * Member fields
-     */
     private BluetoothAdapter mBtAdapter;
-
     private String mCarBeaconAddress;
     private String mWalletBeaconAddress;
+    private Timer mTimer;
 
-    private Timer timer;
     /**
      * Target we publish for clients to send messages to IncomingHandler.
      */
@@ -45,7 +43,6 @@ public class MonitorService extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
-        Toast.makeText(getApplicationContext(), "binding", Toast.LENGTH_SHORT).show();
         return mMessenger.getBinder();
     }
 
@@ -60,7 +57,7 @@ public class MonitorService extends Service {
         super.onCreate();
         // Get the local Bluetooth adapter
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
-        timer = new Timer();
+        mTimer = new Timer();
         // Register for broadcasts when a device is discovered
         IntentFilter foundFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mBluetoothReceiver, foundFilter);
@@ -71,8 +68,7 @@ public class MonitorService extends Service {
     }
 
     /**
-     * The BroadcastReceiver that listens for discovered devices and changes the title when
-     * discovery is finished
+     * The BroadcastReceiver that listens for discovered devices
      */
     private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
         @Override
@@ -92,6 +88,8 @@ public class MonitorService extends Service {
                 } else if (device.getAddress().equals(mWalletBeaconAddress)) {
                     walletRSSI = rssi;
                 }
+                Log.d("test", "Car rssi: " + carRSSI);
+                Log.d("test", "Wallet rssi: " + walletRSSI);
                 if (carRSSI > -70 && (walletRSSI < -70 || walletRSSI == 0)) {
                     notifyUser();
                 }
@@ -160,7 +158,7 @@ public class MonitorService extends Service {
                     mWalletBeaconAddress = msg.getData().getString(Constants.BEACON_ADDRESS);
                     break;
                 case Constants.MSG_START_MONITOR:
-                    timer.scheduleAtFixedRate(timerTask, 0, 15000);
+                    mTimer.scheduleAtFixedRate(timerTask, 0, 15000);
                     break;
                 default:
                     super.handleMessage(msg);

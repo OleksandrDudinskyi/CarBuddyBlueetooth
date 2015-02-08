@@ -35,79 +35,19 @@ public class StartActivity extends ActionBarActivity {
     private Button mMonitorBtn;
     private TextView mCarBeaconName;
     private TextView mWalletBeaconName;
+
     /**
      * Local Bluetooth adapter
      */
     private BluetoothAdapter mBluetoothAdapter = null;
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case GET_CAR_BEACON:
-                // When DeviceListActivity returns with a device to connect
-                if (resultCode == Activity.RESULT_OK) {
-                    Message msg = Message.obtain(null, Constants.MSG_GET_CAR_ADDRESS, 0, 0);
-                    String name = data.getExtras()
-                            .getString(Constants.EXTRA_DEVICE_NAME);
-                    mCarBeaconName.setText(name);
-                    connectDevice(data, false, msg);
-                }
-                break;
-            case GET_WALLET_BEACON:
-                // When DeviceListActivity returns with a device to connect
-                if (resultCode == Activity.RESULT_OK) {
-                    Message msg = Message.obtain(null, Constants.MSG_GET_WALLET_ADDRESS, 0, 0);
-                    String name = data.getExtras()
-                            .getString(Constants.EXTRA_DEVICE_NAME);
-                    mWalletBeaconName.setText(name);
-                    connectDevice(data, false, msg);
-                }
-                break;
-            case REQUEST_ENABLE_BT:
-                // When the request to enable Bluetooth returns
-                if (resultCode == Activity.RESULT_OK) {
-                    // Bluetooth is now enabled, so set up a session
-                } else {
-                    // User did not enable Bluetooth or an error occurred
-                    Log.d(TAG, "BT not enabled");
-                    Toast.makeText(StartActivity.this, R.string.bt_not_enabled_leaving,
-                            Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-        }
-
-    }
-
-    @Override
     public void onStart() {
         super.onStart();
         // If BT is not on, request that it be enabled.
-        // setupChat() will then be called during onActivityResult
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-            // Otherwise, setup the chat session
-        }
-    }
-
-    /**
-     * Establish connection with other device
-     *
-     * @param data   An {@link Intent} with {@link Constants#EXTRA_DEVICE_ADDRESS} extra.
-     * @param secure Socket Security type - Secure (true) , Insecure (false)
-     */
-    private void connectDevice(Intent data, boolean secure, Message msg) {
-        // Get the device MAC address
-        String address = data.getExtras()
-                .getString(Constants.EXTRA_DEVICE_ADDRESS);
-        // Create and send a message to the service, using a supported 'what' value
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.BEACON_ADDRESS, address);
-        msg.setData(bundle);
-        try {
-            mService.send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
         }
     }
 
@@ -184,15 +124,65 @@ public class StartActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case GET_CAR_BEACON:
+                // When @link BeaconsListActivity returns car beacon set up it
+                if (resultCode == Activity.RESULT_OK) {
+                    // Create and send a message to the service, using a supported 'what' value
+                    Message msg = Message.obtain(null, Constants.MSG_GET_CAR_ADDRESS, 0, 0);
+                    String name = data.getExtras().getString(Constants.EXTRA_DEVICE_NAME);
+                    mCarBeaconName.setText(name);
+                    setupBeacon(data, msg);
+                }
+                break;
+            case GET_WALLET_BEACON:
+                // When DeviceListActivity returns with a device to connect
+                if (resultCode == Activity.RESULT_OK) {
+                    // Create and send a message to the service, using a supported 'what' value
+                    Message msg = Message.obtain(null, Constants.MSG_GET_WALLET_ADDRESS, 0, 0);
+                    String name = data.getExtras().getString(Constants.EXTRA_DEVICE_NAME);
+                    mWalletBeaconName.setText(name);
+                    setupBeacon(data, msg);
+                }
+                break;
+            case REQUEST_ENABLE_BT:
+                // When the request to enable Bluetooth returns
+                if (resultCode != Activity.RESULT_OK) {
+                    // User did not enable Bluetooth or an error occurred
+                    Log.d(TAG, "BT not enabled");
+                    Toast.makeText(StartActivity.this, R.string.bt_not_enabled_leaving,
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+        }
+
+    }
+
+    /**
+     * Setup beacon and send beacon address to service
+     *
+     * @param data An {@link Intent} with {@link Constants#EXTRA_DEVICE_ADDRESS} extra.
+     * @param msg  Message to monitor service
+     */
+    private void setupBeacon(Intent data, Message msg) {
+        // Get the device MAC address
+        String address = data.getExtras().getString(Constants.EXTRA_DEVICE_ADDRESS);
+        Bundle bundle = new Bundle();
+        bundle.putString(Constants.BEACON_ADDRESS, address);
+        msg.setData(bundle);
+        try {
+            mService.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Messenger for communicating with the service.
      */
     Messenger mService = null;
-
-    /**
-     * Flag indicating whether we have called bind on the service.
-     */
-    boolean mBound;
 
     /**
      * Class for interacting with the main interface of the service.
@@ -205,14 +195,12 @@ public class StartActivity extends ActionBarActivity {
             // service using a Messenger, so here we get a client-side
             // representation of that from the raw IBinder object.
             mService = new Messenger(service);
-            mBound = true;
         }
 
         public void onServiceDisconnected(ComponentName className) {
             // This is called when the connection with the service has been
             // unexpectedly disconnected -- that is, its process crashed.
             mService = null;
-            mBound = false;
         }
     };
 }
