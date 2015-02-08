@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="rssi_seek_bar_max_number">50</integer>
+    <integer name="update_fr_seek_bar_max_number">50</integer>
+</resources>

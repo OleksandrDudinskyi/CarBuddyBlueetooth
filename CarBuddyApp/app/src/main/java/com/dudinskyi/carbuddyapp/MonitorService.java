@@ -15,7 +15,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +29,8 @@ public class MonitorService extends Service {
     private BluetoothAdapter mBtAdapter;
     private String mCarBeaconAddress;
     private String mWalletBeaconAddress;
+    private int mRSSI = -60;
+    private int mUpdateFrequency = 15;
     private boolean isWalletFound;
     private boolean isCarFound;
     private ScheduledThreadPoolExecutor executor =
@@ -142,9 +143,7 @@ public class MonitorService extends Service {
             if (mBtAdapter.isDiscovering()) {
                 mBtAdapter.cancelDiscovery();
             }
-            Log.d("test","car rssi: " + mCarRSSI);
-            Log.d("test","wallet rssi: " + mWalletRSSI);
-            if (isCarFound && mCarRSSI > -70 && (mWalletRSSI < -70 || !isWalletFound)) {
+            if (isCarFound && mCarRSSI > mRSSI && (mWalletRSSI < mRSSI || !isWalletFound)) {
                 notifyUser();
             }
             isCarFound = false;
@@ -168,13 +167,19 @@ public class MonitorService extends Service {
                 case Constants.MSG_GET_WALLET_ADDRESS:
                     mWalletBeaconAddress = msg.getData().getString(Constants.BEACON_ADDRESS);
                     break;
+                case Constants.MSG_SETTINGS:
+                    mRSSI = (-1) * msg.getData().getInt(Constants.EXTRA_SETTINGS_RSSI);
+                    mUpdateFrequency = msg.getData().getInt(Constants.EXTRA_SETTINGS_UPDATE_TIME);
+                    break;
                 case Constants.MSG_START_MONITOR:
                     mCarBeaconAddress = msg.getData().getString(Constants.CAR_BEACON_ADDRESS);
                     mWalletBeaconAddress = msg.getData().getString(Constants.WALLET_BEACON_ADDRESS);
+                    mRSSI = (-1) * msg.getData().getInt(Constants.EXTRA_SETTINGS_RSSI);
+                    mUpdateFrequency = msg.getData().getInt(Constants.EXTRA_SETTINGS_UPDATE_TIME);
                     if (executor.isShutdown()) {
                         executor = new ScheduledThreadPoolExecutor(1);
                     }
-                    executor.scheduleAtFixedRate(timerTask, 0, 15, TimeUnit.SECONDS);
+                    executor.scheduleAtFixedRate(timerTask, 0, mUpdateFrequency, TimeUnit.SECONDS);
                     break;
                 case Constants.MSG_STOP_MONITOR:
                     executor.shutdown();

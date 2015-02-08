@@ -32,6 +32,7 @@ public class StartActivity extends ActionBarActivity implements View.OnClickList
     private static final int GET_CAR_BEACON = 1;
     private static final int GET_WALLET_BEACON = 2;
     private static final int REQUEST_ENABLE_BT = 3;
+    private static final int GET_SETTINGS = 4;
     private Button mSetupCar;
     private Button mSetupWallet;
     private CheckBox mMonitorBtn;
@@ -39,6 +40,8 @@ public class StartActivity extends ActionBarActivity implements View.OnClickList
     private TextView mWalletBeaconName;
     private String mCarBeaconAddress;
     private String mWalletBeaconAddress;
+    private int mRSSISettings = 60;
+    private int mUpdateTimeSettings = 10;
 
     /**
      * Local Bluetooth adapter
@@ -69,19 +72,25 @@ public class StartActivity extends ActionBarActivity implements View.OnClickList
         mSetupCar.setOnClickListener(this);
         mSetupWallet.setOnClickListener(this);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        final String monitorStartTitle = getResources().getString(R.string.monitor_btn_start_title);
+        final String monitorStopTitle = getResources().getString(R.string.monitor_btn_stop_title);
         mMonitorBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Message msg;
                 if (isChecked) {
+                    mMonitorBtn.setText(monitorStartTitle);
                     bindService(new Intent(StartActivity.this, MonitorService.class), mConnection,
                             Context.BIND_AUTO_CREATE);
                     Bundle bundle = new Bundle();
                     bundle.putString(Constants.CAR_BEACON_ADDRESS, mCarBeaconAddress);
                     bundle.putString(Constants.WALLET_BEACON_ADDRESS, mWalletBeaconAddress);
+                    bundle.putInt(Constants.EXTRA_SETTINGS_RSSI, mRSSISettings);
+                    bundle.putInt(Constants.EXTRA_SETTINGS_UPDATE_TIME, mUpdateTimeSettings);
                     msg = Message.obtain(null, Constants.MSG_START_MONITOR, 0, 0);
                     msg.setData(bundle);
                 } else {
+                    mMonitorBtn.setText(monitorStopTitle);
                     msg = Message.obtain(null, Constants.MSG_STOP_MONITOR, 0, 0);
                 }
                 try {
@@ -116,7 +125,10 @@ public class StartActivity extends ActionBarActivity implements View.OnClickList
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            Intent settingsIntent = new Intent(StartActivity.this, SettingsActivity.class);
+            settingsIntent.putExtra(Constants.EXTRA_SETTINGS_RSSI, mRSSISettings);
+            settingsIntent.putExtra(Constants.EXTRA_SETTINGS_UPDATE_TIME, mUpdateTimeSettings);
+            startActivityForResult(settingsIntent, GET_SETTINGS);
         }
 
         return super.onOptionsItemSelected(item);
@@ -131,9 +143,14 @@ public class StartActivity extends ActionBarActivity implements View.OnClickList
                     // Create and send a message to the service, using a supported 'what' value
                     Message msg = Message.obtain(null, Constants.MSG_GET_CAR_ADDRESS, 0, 0);
                     String name = data.getExtras().getString(Constants.EXTRA_DEVICE_NAME);
+                    // Get the device MAC address
+                    String address = data.getExtras().getString(Constants.EXTRA_DEVICE_ADDRESS);
+                    Bundle bundle = new Bundle();
+                    bundle.putString(Constants.BEACON_ADDRESS, address);
+                    msg.setData(bundle);
                     mCarBeaconAddress = data.getExtras().getString(Constants.EXTRA_DEVICE_ADDRESS);
                     mCarBeaconName.setText(name);
-                    setupBeacon(data, msg);
+                    setupBeacon(msg);
                 }
                 break;
             case GET_WALLET_BEACON:
@@ -142,9 +159,14 @@ public class StartActivity extends ActionBarActivity implements View.OnClickList
                     // Create and send a message to the service, using a supported 'what' value
                     Message msg = Message.obtain(null, Constants.MSG_GET_WALLET_ADDRESS, 0, 0);
                     String name = data.getExtras().getString(Constants.EXTRA_DEVICE_NAME);
+                    // Get the device MAC address
+                    String address = data.getExtras().getString(Constants.EXTRA_DEVICE_ADDRESS);
+                    Bundle bundle = new Bundle();
+                    bundle.putString(Constants.BEACON_ADDRESS, address);
+                    msg.setData(bundle);
                     mWalletBeaconAddress = data.getExtras().getString(Constants.EXTRA_DEVICE_ADDRESS);
                     mWalletBeaconName.setText(name);
-                    setupBeacon(data, msg);
+                    setupBeacon(msg);
                 }
                 break;
             case REQUEST_ENABLE_BT:
@@ -156,6 +178,21 @@ public class StartActivity extends ActionBarActivity implements View.OnClickList
                             Toast.LENGTH_SHORT).show();
                     finish();
                 }
+            case GET_SETTINGS:
+                if (resultCode == Activity.RESULT_OK) {
+                    mRSSISettings = data.getExtras().getInt(Constants.EXTRA_SETTINGS_RSSI, 0);
+                    mUpdateTimeSettings = data.getExtras().getInt(Constants.EXTRA_SETTINGS_UPDATE_TIME, 0);
+                    // Create and send a message to the service, using a supported 'what' value
+                    Message msg = Message.obtain(null, Constants.MSG_SETTINGS, 0, 0);
+                    Bundle bundle = new Bundle();
+                    bundle.putInt(Constants.EXTRA_SETTINGS_RSSI, mRSSISettings);
+                    bundle.putInt(Constants.EXTRA_SETTINGS_UPDATE_TIME, mUpdateTimeSettings);
+                    msg.setData(bundle);
+                    setupBeacon(msg);
+                }
+                break;
+            default:
+                break;
         }
 
     }
@@ -166,12 +203,7 @@ public class StartActivity extends ActionBarActivity implements View.OnClickList
      * @param data An {@link Intent} with {@link Constants#EXTRA_DEVICE_ADDRESS} extra.
      * @param msg  Message to monitor service
      */
-    private void setupBeacon(Intent data, Message msg) {
-        // Get the device MAC address
-        String address = data.getExtras().getString(Constants.EXTRA_DEVICE_ADDRESS);
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.BEACON_ADDRESS, address);
-        msg.setData(bundle);
+    private void setupBeacon(Message msg) {
         if (mService != null) {
             try {
                 mService.send(msg);

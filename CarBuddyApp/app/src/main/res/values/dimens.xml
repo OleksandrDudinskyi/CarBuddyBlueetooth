@@ -2,4 +2,21 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="rssi_seek_bar_margin_top">10dp</dimen>
+    <dimen name="signal_strength_margin_top">10dp</dimen>
+    <dimen name="update_fr_seek_bar_margin_top">10dp</dimen>
+    <dimen name="update_frequency_margin_top">10dp</dimen>
+    <dimen name="update_fr_title_margin_top">50dp</dimen>
+    <dimen name="go_back_btn_margin_top">30dp</dimen>
+    <dimen name="monitor_btn_margin_top">30dp</dimen>
+    <dimen name="delimiter_height">5dp</dimen>
+    <dimen name="paired_beacons_title_padding_left">10dp</dimen>
+    <dimen name="others_beacons_title_padding_left">5dp</dimen>
+    <dimen name="beacon_name_margin_left">3dp</dimen>
+    <dimen name="beacon_name_title_margin_left">10dp</dimen>
+    <dimen name="start_activity_layout_height">100dp</dimen>
+    <dimen name="start_activity_view_text_size">9pt</dimen>
+
+    <color name="beacons_title_background">#444</color>
+    <color name="beacons_title_color">#999</color>
 </resources>

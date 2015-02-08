@@ -11,7 +11,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="@dimen/start_activity_layout_height"
         android:orientation="horizontal">
 
         <Button
@@ -25,28 +25,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="10dp"
-            android:text="Device name:"
-            android:textSize="9pt" />
+            android:layout_marginLeft="@dimen/beacon_name_title_margin_left"
+            android:text="@string/beacon_name_title"
+            android:textSize="@dimen/start_activity_view_text_size" />
 
         <TextView
             android:id="@+id/car_beacon_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="3dp"
-            android:textSize="9pt" />
+            android:layout_marginLeft="@dimen/beacon_name_margin_left"
+            android:textSize="@dimen/start_activity_view_text_size" />
 
     </LinearLayout>
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="5dp"
+        android:layout_height="@color/background_material_dark"
         android:background="@color/background_material_dark" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp">
+        android:layout_height="@dimen/start_activity_layout_height">
 
         <Button
             android:id="@+id/setup_wallet"
@@ -59,29 +59,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="10dp"
-            android:text="Device name:"
-            android:textSize="9pt" />
+            android:layout_marginLeft="@dimen/beacon_name_title_margin_left"
+            android:text="@string/beacon_name_title"
+            android:textSize="@dimen/start_activity_view_text_size" />
 
         <TextView
             android:id="@+id/wallet_beacon_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="3dp"
-            android:textSize="9pt" />
+            android:layout_marginLeft="@dimen/beacon_name_margin_left"
+            android:textSize="@dimen/start_activity_view_text_size" />
     </LinearLayout>
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="5dp"
+        android:layout_height="@dimen/delimiter_height"
         android:background="@color/background_material_dark" />
 
     <CheckBox
+        android:id="@+id/monitor_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:text="Start monitor"
-        android:id="@+id/monitor_btn"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/monitor_btn_margin_top"
+        android:text="@string/monitor_btn_start_title" />
 </LinearLayout>

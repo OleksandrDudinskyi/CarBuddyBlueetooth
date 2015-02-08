@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/rssi_title" />
+
+    <SeekBar
+        android:id="@+id/rssi_seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/rssi_seek_bar_margin_top"
+        android:max="@integer/rssi_seek_bar_max_number" />
+
+    <TextView
+        android:id="@+id/signal_strength"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/signal_strength_margin_top"
+        android:text="@string/signal_strength" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/update_fr_title_margin_top"
+        android:text="@string/update_fr_title" />
+
+    <SeekBar
+        android:id="@+id/update_fr_seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/update_fr_seek_bar_margin_top"
+        android:max="@integer/update_fr_seek_bar_max_number" />
+
+    <TextView
+        android:id="@+id/update_frequency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/update_frequency_margin_top"
+        android:text="@string/update_fr" />
+
+    <Button
+        android:id="@+id/go_back_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/go_back_btn_margin_top"
+        android:text="@string/go_back_btn_title" />
+
+
+</LinearLayout>

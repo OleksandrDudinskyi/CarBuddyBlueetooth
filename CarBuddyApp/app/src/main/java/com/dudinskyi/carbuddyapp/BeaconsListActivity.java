@@ -182,7 +182,10 @@ public class BeaconsListActivity extends Activity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                    mOtherBeaconsArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                    String beaconName = device.getName() + "\n" + device.getAddress();
+                    if (mOtherBeaconsArrayAdapter.getPosition(beaconName) == -1) {
+                        mOtherBeaconsArrayAdapter.add(beaconName);
+                    }
                 }
                 // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
